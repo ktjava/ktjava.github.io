@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)https://tomokuni-web-site.herokuapp.com/sub/generative/basic_particles.html -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Test Page">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}</style>
+  <title>Fantastic Graph Waterfall</title>
+</head>
+<body>
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+<script type="application/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="application/javascript" src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+<script type="application/javascript">
+<!--
+
+var stage, circle, line, background, nodeNumber=75, nodeArray = [], linkArray = [], prevX=0, prevY=0, count=0;
+
+function setup(){
+  stage = new createjs.Stage("myCanvas");
+  stage.autoClear = false;
+  stage.compositeOperation = "normal";
+  for(var i=0; i<nodeNumber; ++i){
+    var n = new Node();
+    n.setup(innerWidth * Math.random(), innerHeight * Math.random(), 0, 0, 0, 0.009, "rgba(255,255,255,1)");
+    nodeArray.push(n);
+  }
+  line = new createjs.Shape();
+  stage.addChild(line);
+  background = new createjs.Shape();
+	background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+  background.alpha = 0.03;
+	stage.addChild(background);
+  handleResize();
+  createjs.Ticker.timingMode = createjs.Ticker.RAF;
+  createjs.Ticker.addEventListener("tick", stage);
+  createjs.Ticker.addEventListener("tick", handleTick);
+  window.onresize = handleResize;
+}
+function handleTick(){
+  var vNorm = Math.random(),
+  f  = (255*vNorm / 60.0) - Math.floor(255*vNorm / 60.0),
+  p  = Math.round(255 * (1.0 - (255 / 255.0))),
+  q  = Math.round(255 * (1.0 - (255 / 255.0) * f)),
+  t  = Math.round(255 * (1.0 - (255 / 255.0) * (1.0 - f))),
+  red, green, blue;
+  switch(Math.floor(255*vNorm / 60.0) % 6){
+    case 0:
+      red = 255, green = t, blue = p;
+      break;
+    case 1:
+      red = q, green = 255, blue = p;
+      break;
+    case 2:
+      red = p, green = 255, blue = t;
+      break;
+    case 3:
+      red = p, green = q, blue = 255;
+      break;
+    case 4:
+      red = t, green = p, blue = 255;
+      break;
+    case 5:
+      red = 255, green = p, blue = q;
+      break;
+    default:
+      break;
+  }
+  line.graphics.clear();
+  nodeArray.forEach(updateForEach);
+  line.graphics.beginStroke("rgba("+red+","+green+","+blue+","+0.07+")");
+  for(var j=0;j<nodeNumber;++j){
+    for(var i=0;i<nodeNumber;++i){
+      if(Math.sqrt(Math.pow(nodeArray[i].circle.x-nodeArray[j].circle.x,2) + Math.pow(nodeArray[i].circle.y-nodeArray[j].circle.y,2))<400){
+        line.graphics.moveTo(nodeArray[i].circle.x,nodeArray[i].circle.y);
+        line.graphics.lineTo(nodeArray[j].circle.x,nodeArray[j].circle.y);
+      }
+    }
+  }
+  line.graphics.closePath();
+}
+function handleResize() {
+  stage.canvas.width = innerWidth;
+  stage.canvas.height = innerHeight;
+  background.graphics.clear();
+  background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+}
+function updateForEach(element, index, array) {
+  element.update();
+}
+
+var Node = (function () {
+  function Node() {
+    this.circle = new createjs.Shape();
+    stage.addChild(this.circle);
+  }
+  Node.prototype.setup = function (x, y, vx, vy, ax, ay, color) {
+    this.circle.graphics.beginFill(color).drawCircle(0, 0, 1);
+    this.circle.x = x;
+    this.circle.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.ax = ax;
+    this.ay = ay;
+    stage.setChildIndex (this.circle,nodeNumber-1);
+  };
+  Node.prototype.update = function () {
+    this.vx += this.ax;
+    this.vy += this.ay;
+    this.circle.x += this.vx;
+    this.circle.y += this.vy;
+    if(this.circle.y >= innerHeight){
+      this.vy = 0;
+      this.circle.x = innerWidth * Math.random();
+      this.circle.y = 100 * Math.random();
+    }
+  };
+  return Node;
+})();
+
+window.onload = setup;
+
+-->
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<html>
+	<head>
+		<title>3D Grass Sphere Particle System</title>
+		<style type="text/css">
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+		<script type="application/javascript">
+		const NODE_NUMBER = 100, GRAVITY_COEF = 0.0001;
+		var scene = new THREE.Scene(),
+		mouse = new THREE.Vector2(), INTERSECTED,
+		camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000),
+		renderer = new THREE.WebGLRenderer(),
+		nodeArray = [],
+		textureCube = createCubeMap(),
+		count = 0;
+		resetFlag = false,
+		shotFlag = false,
+		Node = (function(){
+			function Node(x, y, z, vx, vy, vz){
+				this.mesh = new THREE.Mesh(new THREE.SphereGeometry(0.1, 32, 32), new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0xffffff, shininess: 100000000, blending: THREE.AdditiveBlending}));
+				this.mesh.material.envMap = textureCube;
+				this.mesh.position.x = x;
+				this.mesh.position.y = y;
+				this.mesh.position.z = z;
+				this.vx = vx;
+				this.vy = vy;
+				this.vz = vz;
+				scene.add(this.mesh);
+			}
+			Node.prototype.update = function(){
+				var rangeX = -4*Math.sin(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.x, rangeY = mouse.y - this.mesh.position.y, rangeZ = -4*Math.cos(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.z, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY+rangeZ*rangeZ), coefA = GRAVITY_COEF / range*range*range;
+				this.vx += coefA * rangeX;
+				this.vy += coefA * rangeY;
+				this.vz += coefA * rangeZ;
+				this.mesh.position.x += this.vx;
+				this.mesh.position.y += this.vy;
+				this.mesh.position.z += this.vz;
+				if(resetFlag){
+					this.mesh.position.x = Math.random() - 0.5;
+					this.mesh.position.y = Math.random() - 0.5;
+				 	this.mesh.position.z = Math.random() - 0.5;
+				}
+				this.mesh.rotation.x += 0.001*mouse.x;
+				this.mesh.rotation.y += 0.001*mouse.y;
+				this.mesh.rotation.z += 0.001*this.mesh.position.z;
+			};
+			return Node;
+		})();
+		function createCubeMap() {
+			const PATH = "textures/cubemap/", FORMAT = '.jpg',
+			URLS = [
+				PATH + 'posx' + FORMAT, PATH + 'negx' + FORMAT,
+				PATH + 'posy' + FORMAT, PATH + 'negy' + FORMAT,
+				PATH + 'posz' + FORMAT, PATH + 'negz' + FORMAT,
+			],
+			CUBE_TEXTURE_LOADER = new THREE.CubeTextureLoader();
+			return CUBE_TEXTURE_LOADER.load(URLS);
+		}
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene, camera);
+			camera.rotation.x = 0.01*Math.sin(0.07*(Math.random()-0.5));
+			camera.rotation.y -= 0.01*mouse.x;
+			camera.rotation.z = 0.01*Math.cos(0.07*(Math.random()-0.5));
+			for(var i=0;i<NODE_NUMBER;++i){
+				nodeArray[i].update();
+			}
+			if(shotFlag){
+				nodeArray[count].mesh.position.x = 0;
+				nodeArray[count].mesh.position.y = 0;
+				nodeArray[count].mesh.position.z = 0;
+				nodeArray[count].vx = 0;
+				nodeArray[count].vy = 0;
+				nodeArray[count].vz = 0;
+				++count;
+			}
+			resetFlag = false;
+			if(count>=NODE_NUMBER){
+				count = 0;
+			}
+		}
+		window.onload = function(){
+			//Texture Cube Mesh Settings
+			textureCube.mapping = THREE.CubeRefractionMapping;
+			var shader = THREE.ShaderLib["cube"];
+			shader.uniforms["tCube"].value = textureCube;
+			scene.add(new THREE.Mesh(new THREE.BoxGeometry(100,100,100), new THREE.ShaderMaterial({
+				fragmentShader: shader.fragmentShader,
+				vertexShader: shader.vertexShader,
+				uniforms: shader.uniforms,
+				depthWrite: false,
+				side: THREE.BackSide
+			})));
+			//Ambient Light Settings
+			scene.add(new THREE.AmbientLight(0xffffff));
+			//Directional Light Settings
+			var directionalLight = new THREE.DirectionalLight(0xffffff);
+			directionalLight.position.set(1, 1, 1);
+			scene.add(directionalLight);
+			//Hemisphere Light Settings
+			var hemiLight = new THREE.HemisphereLight(0x0000ff, 0x00ffff, 0.9);
+			hemiLight.position.set(0, 0, 0);
+			scene.add(hemiLight);
+			//Node Settings
+			for(var i=0; i<NODE_NUMBER; ++i){
+				nodeArray.push(new Node(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, 0, 0, 0));
+			}
+			//Event Handler Settings
+			window.onresize = function(){
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+			};
+			window.onresize();
+			document.onmousemove = function(event){
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			};
+			document.onmousedown = function(event){
+				shotFlag = true;
+			};
+			document.onmouseup = function(event){
+				shotFlag = false;
+			};
+			document.onwheel = function(event){
+				resetFlag = true;
+			};
+			renderer.setClearColor(0x000000, 1.0);
+			document.body.appendChild(renderer.domElement);
+			render();
+		};
+		</script>
+	</body>
+</html>

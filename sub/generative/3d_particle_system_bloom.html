@@ -1,0 +1,182 @@
+<html>
+	<head>
+		<title>3D Particle System Bloom</title>
+		<style type="text/css">
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+		<script type="application/javascript" src="js/three.js/postprocessing/EffectComposer.js"></script>
+		<script type="application/javascript" src="js/three.js/postprocessing/MaskPass.js"></script>
+		<script type="application/javascript" src="js/three.js/postprocessing/RenderPass.js"></script>
+    <script type="application/javascript" src="js/three.js/postprocessing/ShaderPass.js"></script>
+		<script type="application/javascript" src="js/three.js/shaders/CopyShader.js"></script>
+		<script type="application/javascript" src="js/three.js/postprocessing/BloomPass.js"></script>
+		<script type="application/javascript" src="js/three.js/shaders/ConvolutionShader.js"></script>
+		<script type="application/javascript" src="js/three.js/postprocessing/TexturePass.js"></script>
+		<script type="application/javascript">
+		const NODE_NUMBER = 2000, GRAVITY_COEF = 0.0001, CUBE_SIZE = 0.1,
+		NODE_GEOMETRY = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
+		NODE_MATERIAL = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0xffffff, shininess: 100000000, blending: THREE.AdditiveBlending}),
+		TEXTURE_CUBE = createCubeMap();
+		var scene = new THREE.Scene(),
+		mouse = new THREE.Vector2(),
+		camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000),
+		renderer = new THREE.WebGLRenderer(),
+		clock = new THREE.Clock(),
+		nodeArray = [],
+		count = 0,
+		resetFlag = false,
+		shotFlag = false,
+		composer,
+		composerBloom,
+		Node = (function(){
+			function Node(x, y, z, vx, vy, vz){
+				this.mesh = new THREE.Mesh(NODE_GEOMETRY, NODE_MATERIAL);
+				this.mesh.position.x = x;
+				this.mesh.position.y = y;
+				this.mesh.position.z = z;
+				this.vx = vx;
+				this.vy = vy;
+				this.vz = vz;
+				scene.add(this.mesh);
+			}
+			Node.prototype.update = function(){
+				var rangeX = -4*Math.sin(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.x,
+				rangeY = mouse.y - this.mesh.position.y,
+				rangeZ = -4*Math.cos(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.z,
+				range = Math.sqrt(rangeX*rangeX+rangeY*rangeY+rangeZ*rangeZ),
+				coefA = GRAVITY_COEF / range*range*range;
+				//this.vx += coefA * rangeX - Math.sign(this.vx) * 1.2250 * 0.00001 * this.vx * this.vx / 2;
+				//this.vy += coefA * rangeY - Math.sign(this.vy) * 1.2250 * 0.00001 * this.vy * this.vy / 2 - 0.0001;
+				//this.vz += coefA * rangeZ - Math.sign(this.vz) * 1.2250 * 0.00001 * this.vz * this.vz / 2;
+				this.vx += coefA * rangeX;
+				this.vy += coefA * rangeY - 0.0001;
+				this.vz += coefA * rangeZ;
+				this.mesh.position.x += this.vx;
+				this.mesh.position.y += this.vy;
+				this.mesh.position.z += this.vz;
+				if(resetFlag){
+					this.mesh.position.x = Math.random() - 0.5;
+					this.mesh.position.y = Math.random() - 0.5;
+				 	this.mesh.position.z = Math.random() - 0.5;
+					this.vx = 0;
+					this.vy = 0;
+					this.vz = 0;
+				}
+				this.mesh.rotation.x += 0.001*mouse.x;
+				this.mesh.rotation.y += 0.001*mouse.y;
+				this.mesh.rotation.z += 0.001*this.mesh.position.z;
+			};
+			return Node;
+		})();
+		function createCubeMap(){
+			const PATH = "textures/cubemap/", FORMAT = '.jpg';
+			return new THREE.CubeTextureLoader().load([
+				PATH + 'posx' + FORMAT, PATH + 'negx' + FORMAT,
+				PATH + 'posy' + FORMAT, PATH + 'negy' + FORMAT,
+				PATH + 'posz' + FORMAT, PATH + 'negz' + FORMAT,
+			]);
+		}
+		function render(){
+			requestAnimationFrame(render);
+			var delta = clock.getDelta();
+			renderer.clear();
+			composer.render(delta);
+			composerBloom.render(delta);
+			camera.rotation.x = 0.01*Math.sin(0.07*(Math.random()-0.5));
+			camera.rotation.y -= 0.01*mouse.x;
+			camera.rotation.z = 0.01*Math.cos(0.07*(Math.random()-0.5));
+			for(var i=0;i<NODE_NUMBER;++i){
+				nodeArray[i].update();
+			}
+			if(shotFlag){
+				nodeArray[count].mesh.position.x = 0;
+				nodeArray[count].mesh.position.y = 0;
+				nodeArray[count].mesh.position.z = 0;
+				nodeArray[count].vx = 0;
+				nodeArray[count].vy = 0;
+				nodeArray[count].vz = 0;
+				++count;
+			}
+			resetFlag = false;
+			if(count>=NODE_NUMBER){
+				count = 0;
+			}
+		}
+		window.onload = function(){
+			//Texture Cube Mesh Settings
+			NODE_MATERIAL.envMap = TEXTURE_CUBE;
+			NODE_MATERIAL.precision = "highp";
+			NODE_MATERIAL.fog = false;
+			camera.lookAt(new THREE.Vector3(0, 0, 0));
+			var shader = THREE.ShaderLib["cube"];
+			shader.uniforms["tCube"].value = TEXTURE_CUBE;
+			scene.add(new THREE.Mesh(new THREE.BoxGeometry(100,100,100), new THREE.ShaderMaterial({
+				fragmentShader: shader.fragmentShader,
+				vertexShader: shader.vertexShader,
+				uniforms: shader.uniforms,
+				depthWrite: false,
+				side: THREE.BackSide
+			})));
+			//Ambient Light Settings
+			scene.add(new THREE.AmbientLight(0xffffff));
+			//Directional Light Settings
+			var directionalLight = new THREE.DirectionalLight(0xffffff);
+			directionalLight.position.set(1, 1, -1);
+			scene.add(directionalLight);
+			//Hemisphere Light Settings
+			var hemiLight = new THREE.HemisphereLight(0xffa500, 0x0000ff, 0.5);
+			hemiLight.position.set(0, -70, 0);
+			scene.add(hemiLight);
+			//Node Settings
+			for(var i=0; i<NODE_NUMBER; ++i){
+				nodeArray.push(new Node(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, 0, 0, 0));
+			}
+			//Event Handler Settings
+			window.onresize = function(){
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+			};
+			window.onresize();
+			document.onmousemove = function(event){
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			};
+			document.onmousedown = function(event){
+				shotFlag = true;
+			};
+			document.onmouseup = function(event){
+				shotFlag = false;
+			};
+			document.onwheel = function(event){
+				resetFlag = true;
+			};
+			renderer.setClearColor(0x000000, 1.0);
+			renderer.autoClear = false;
+			document.body.appendChild(renderer.domElement);
+
+			var renderPass = new THREE.RenderPass(scene, camera);
+			var bloomPass = new THREE.BloomPass(1, 15, 5, 256);
+			var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+			effectCopy.renderToScreen = true;
+
+			composer = new THREE.EffectComposer(renderer);
+			composer.addPass(renderPass);
+			composer.addPass(effectCopy);
+			var renderScene = new THREE.TexturePass(composer.renderTarget2.texture);
+
+			composerBloom = new THREE.EffectComposer(renderer);
+			composerBloom.addPass(renderScene);
+			composerBloom.addPass(bloomPass);
+			composerBloom.addPass(effectCopy);
+
+			render();
+		};
+		</script>
+	</body>
+</html>

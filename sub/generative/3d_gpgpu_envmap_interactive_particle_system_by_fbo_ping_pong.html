@@ -1,0 +1,220 @@
+<html>
+	<head>
+		<title>3D Particle System Optimized</title>
+		<style type="text/css">
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+	<script id="computeShaderPosition" type="x-shader/x-fragment">
+	            #define delta (1.0 / 60.0)
+	            void main(){
+	                vec2 uv = gl_FragCoord.xy / resolution.xy;
+	                vec4 tmpPos = texture2D(texturePosition, uv);
+	                vec3 pos = tmpPos.xyz;
+	                vec4 tmpVel = texture2D(textureVelocity, uv);
+	                vec3 vel = tmpVel.xyz;
+	                pos += delta * vel;
+	                gl_FragColor = vec4(pos, 1.0);
+	            }
+	</script>
+	<script id="computeShaderVelocity" type="x-shader/x-fragment">
+							#define delta (1.0 / 60.0)
+							uniform float gravityCoef;
+							uniform vec2 mouse;
+	            void main(){
+	                vec2 uv = gl_FragCoord.xy / resolution.xy;
+									vec4 tmpPos = texture2D(texturePosition, uv);
+	                vec3 pos = tmpPos.xyz;
+	                vec4 tmpVel = texture2D(textureVelocity, uv);
+	                vec3 vel = tmpVel.xyz;
+									vel += delta * gravityCoef * (vec3(mouse,0.0) - pos) / length(vec3(mouse,0.0) - pos);
+	                gl_FragColor = vec4(vel,1.0);
+	            }
+		</script>
+		<script id="particleVertexShader" type="x-shader/x-vertex">
+            uniform sampler2D texturePosition;
+            void main(){
+                vec4 posTemp = texture2D(texturePosition, uv);
+                vec3 pos = posTemp.xyz;
+                gl_PointSize = 0.999;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+    </script>
+		<script id="particleFragmentShader" type="x-shader/x-fragment">
+            void main(){
+              gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+    </script>
+		<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+		<script type="application/javascript" src="js/three.js/Renderer/GPUComputationRenderer.js"></script>
+		<script type="application/javascript">
+		function createCubeMap(){
+			const PATH = "textures/cubemap/", FORMAT = '.jpg';
+			return new THREE.CubeTextureLoader().load([
+				PATH + 'posx' + FORMAT, PATH + 'negx' + FORMAT,
+				PATH + 'posy' + FORMAT, PATH + 'negy' + FORMAT,
+				PATH + 'posz' + FORMAT, PATH + 'negz' + FORMAT,
+			]);
+		}
+		window.onload = function(){
+			const NODE_NUMBER = 2000, GRAVITY_COEF = 0.0001, CUBE_SIZE = 0.1,
+			NODE_GEOMETRY = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
+			NODE_MATERIAL = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0xffffff, shininess: 100000000, blending: THREE.AdditiveBlending}),
+			TEXTURE_CUBE = createCubeMap();
+			var scene = new THREE.Scene(),
+			mouse = new THREE.Vector2(),
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000),
+			webGLRenderer = new THREE.WebGLRenderer(),
+			nodeArray = [],
+			count = 0,
+			resetFlag = false,
+			shotFlag = false;
+
+			const WIDTH = 800, PARTICLES = WIDTH * WIDTH;
+			var gpuComputationRenderer = new GPUComputationRenderer(WIDTH, WIDTH, webGLRenderer),
+			particleUniforms, velocityVariable, positionVariable;
+
+			//パーティクルシステムの初期値を設定
+
+			var dtPosition = gpuComputationRenderer.createTexture(),
+			dtVelocity = gpuComputationRenderer.createTexture();
+			function fillTextures(texturePosition, textureVelocity){
+				var posArray = texturePosition.image.data,
+				velArray = textureVelocity.image.data;
+				for(var k = 0, kl = posArray.length; k < kl; k += 4){
+						var x = Math.random()*2-1, y = Math.random()*2-1, z = Math.random()*5-1;
+						posArray[ k + 0 ] = x;
+						posArray[ k + 1 ] = y;
+						posArray[ k + 2 ] = z;
+						posArray[ k + 3 ] = 0;
+						velArray[ k + 0 ] = 0;
+						velArray[ k + 1 ] = 0;
+						velArray[ k + 2 ] = 0;
+						velArray[ k + 3 ] = 0;
+				}
+			}
+			fillTextures(dtPosition, dtVelocity);
+
+			//GPU計算レンダラに初期値を渡す
+
+			velocityVariable = gpuComputationRenderer.addVariable( "textureVelocity", document.getElementById( 'computeShaderVelocity' ).textContent, dtVelocity );
+			positionVariable = gpuComputationRenderer.addVariable( "texturePosition", document.getElementById( 'computeShaderPosition' ).textContent, dtPosition );
+			gpuComputationRenderer.setVariableDependencies(velocityVariable, [positionVariable, velocityVariable]);
+			gpuComputationRenderer.setVariableDependencies(positionVariable, [positionVariable, velocityVariable]);
+
+			//GPU計算レンダラの初期化を実行
+
+			var error = gpuComputationRenderer.init();
+			if ( error !== null ) {
+				console.error( error );
+			}
+
+			camera.lookAt(new THREE.Vector3(0, 0, 0));
+			// var shader = THREE.ShaderLib["cube"];
+			// shader.uniforms["tCube"].value = TEXTURE_CUBE;
+			// scene.add(new THREE.Mesh(new THREE.BoxGeometry(100,100,100), new THREE.ShaderMaterial({
+			// 	fragmentShader: shader.fragmentShader,
+			// 	vertexShader: shader.vertexShader,
+			// 	uniforms: shader.uniforms,
+			// 	depthWrite: false,
+			// 	side: THREE.BackSide
+			// })));
+
+			//パーティクルの位置に関する初期化
+
+			function initPosition(){
+
+					geometry = new THREE.BufferGeometry();
+					var positions = new Float32Array( PARTICLES * 3 ),
+					p = 0;
+					for ( var i = 0; i < PARTICLES; i++ ) {
+							positions[ p++ ] = 0;
+							positions[ p++ ] = 0;
+							positions[ p++ ] = 0;
+					}
+
+					var uvs = new Float32Array( PARTICLES * 2 );
+					p = 0;
+					for ( var j = 0; j < WIDTH; j++ ) {
+							for ( var i = 0; i < WIDTH; i++ ) {
+									uvs[ p++ ] = i / ( WIDTH - 1 );
+									uvs[ p++ ] = j / ( WIDTH - 1 );
+							}
+					}
+
+					geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+					geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+					function getCameraConstant( camera ) {
+							return window.innerHeight / ( Math.tan( THREE.Math.DEG2RAD * 0.5 * camera.fov ) / camera.zoom );
+					}
+
+					particleUniforms = {
+							texturePosition: { value: null },
+							textureVelocity: { value: null }
+					};
+
+					var material = new THREE.ShaderMaterial({
+							uniforms:       particleUniforms,
+							vertexShader:   document.getElementById('particleVertexShader').textContent,
+							fragmentShader: document.getElementById('particleFragmentShader').textContent
+					});
+					material.extensions.drawBuffers = true;
+
+					var particles = new THREE.Points(geometry, material);
+					particles.matrixAutoUpdate = false;
+					particles.updateMatrix();
+
+					scene.add(particles);
+			}
+			initPosition();
+
+			//Ambient Light Settings
+			scene.add(new THREE.AmbientLight(0xffffff));
+			//Directional Light Settings
+			var directionalLight = new THREE.DirectionalLight(0xffffff);
+			directionalLight.position.set(1, 1, -1);
+			scene.add(directionalLight);
+			//Hemisphere Light Settings
+			var hemiLight = new THREE.HemisphereLight(0xffa500, 0x0000ff, 0.5);
+			hemiLight.position.set(0, -70, 0);
+			scene.add(hemiLight);
+			//Event Handler Settings
+			window.onresize = function(){
+				webGLRenderer.setSize( window.innerWidth, window.innerHeight );
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+			};
+			window.onresize();
+			document.onmousemove = function(event){
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			};
+			webGLRenderer.setClearColor(0x000000, 1.0);
+			document.body.appendChild(webGLRenderer.domElement);
+			function render(){
+				requestAnimationFrame(render);
+
+				velocityVariable.material.uniforms.mouse = { value: [(2*mouse.x-window.innerWidth)/window.innerWidth,(window.innerHeight-2*mouse.y)/window.innerHeight] };
+				velocityVariable.material.uniforms.gravityCoef = { value: 1 };
+
+				//計算実行
+				gpuComputationRenderer.compute();
+
+				//計算結果のフィードバック (FBO Ping Pong 特有の処理)
+				particleUniforms.texturePosition.value = gpuComputationRenderer.getCurrentRenderTarget( positionVariable ).texture;
+				particleUniforms.textureVelocity.value = gpuComputationRenderer.getCurrentRenderTarget( velocityVariable ).texture;
+
+				webGLRenderer.render(scene, camera);
+				camera.rotation.x = 0.01*Math.sin(0.07*(Math.random()-0.5));
+				camera.rotation.y -= 0.01*mouse.x;
+				camera.rotation.z = 0.01*Math.cos(0.07*(Math.random()-0.5));
+			}
+			render();
+		};
+		</script>
+	</body>
+</html>

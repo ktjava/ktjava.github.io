@@ -1,0 +1,59 @@
+<html>
+	<head>
+		<title>Off Screen Render Test</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+		<script src="js/BlendShader.js"></script>
+		<script>
+		var scene = new THREE.Scene(),
+		texture = new THREE.TextureLoader().load( "textures/texture.jpg" ),
+		texture2 = new THREE.TextureLoader().load( "textures/texture2.jpg" ),
+		renderer = new THREE.WebGLRenderer({preserveDrawingBuffer:false}),
+		mouse = new THREE.Vector2(), INTERSECTED,
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
+		overlayMaterial = new THREE.ShaderMaterial(THREE.BlendShader),
+		overlay,
+		i=0;
+		function setup(){
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x000000);
+			renderer.autoClear = true;
+			overlayMaterial.uniforms['tDiffuse1'].value = texture;
+			overlayMaterial.uniforms['tDiffuse2'].value = texture2;
+			overlay = new THREE.Mesh(new THREE.PlaneGeometry(window.innerWidth, window.innerHeight, 0), overlayMaterial);
+			overlay.position.z = 0;
+			scene.add(overlay);
+			//camera.position.z = 100;
+			document.body.appendChild(renderer.domElement);
+			document.addEventListener('mousemove',function(event){
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			},false);
+			window.onresize = function(){
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				overlay.width = window.innerWidth;
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+			};
+			window.onresize();
+			render();
+		}
+		function render(){
+			requestAnimationFrame(render);
+			renderer.render(scene, camera);
+			overlayMaterial.uniforms['mixRatio'].value = Math.sin(i);
+			i+=0.001*2*Math.PI;
+			if(i>2*Math.PI){
+				i=0;
+			}
+		}
+		window.onload = setup;
+		</script>
+	</body>
+</html>

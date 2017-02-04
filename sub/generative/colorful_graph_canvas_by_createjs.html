@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)https://tomokuni-web-site.herokuapp.com/sub/generative/basic_particles.html -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">
+  @font-face {
+  	font-family: 'nakamura';
+  	src: url(./font/nkmr__.ttf) format('truetype');
+  }
+  @keyframes FadeIn {
+    0% {color:#DC143C;opacity:0;}
+    100% {opacity:0.8;}
+  }
+  @keyframes FadeOut {
+    0% {opacity:0.8;}
+    100% {color:#DC143C;opacity:0;}
+  }
+  body{background-color:#000000;margin:0;padding:0;font-family:nakamura;}#myCanvas{position:fixed;margin:0;padding:0;}
+  #opening{
+    will-change: opacity;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    position: fixed !important;
+    color: #FFFFFF;
+    background: #ffffff;
+    z-index: 4;
+    -webkit-transition: 0.8s;
+  	-moz-transition: 0.8s;
+  	-o-transition: 0.8s;
+  	-ms-transition: 0.8s;
+  	transition: 0.8s;
+    text-align:center;
+    background-image: url("img/20080407034536.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  #opening-title{
+    position:fixed;
+    top:42%;
+    left:50%;
+    width:100%;
+    margin:-1.5em 0 0 -50%;
+  	animation: FadeIn 1s ease 0.1s forwards;
+  	opacity: 0;
+  	pointer-events: none;
+  }
+  #opening-click{
+    will-change: opacity;
+    -webkit-transition: 0.8s;
+  	-moz-transition: 0.8s;
+  	-o-transition: 0.8s;
+  	-ms-transition: 0.8s;
+  	transition: 0.8s;
+    width: 100%;
+    bottom: 0;
+    position: absolute;
+    z-index: 4;
+    font-size: 64px;
+    color: #000000;
+    background: #FFFFFF;
+  	animation: FadeIn 1s ease 0.1s forwards;
+  	opacity: 0;
+  }
+  #opening-click:hover{
+    background : #DC143C;
+  }
+  #superImpose{
+    position:fixed;
+    top:50%;
+    width:100%;
+  	opacity:0;
+    z-index: 3;
+    color: #FFFFFF;
+    background : #FF0000;
+  }
+  </style>
+  <title>Colorful Graph Canvas by CreateJS</title>
+</head>
+<body>
+<canvas id="myCanvas" width="0" height="0"></canvas>
+<div id="superImpose"></div>
+<div id="opening">
+  <p id="opening-title">Generative Canvas Series #02<br><br>Colorful Graph Canvas (WIP Version)<br><br>by<br><img src="img/createjs-logo.png" height="50px"><br><br>操作説明: マウスカーソル移動でブラシ描画を行う。マウスホイール回転でブラシの太さを変える。</p>
+  <div id="opening-click">↓<div>
+</div>
+<script type="application/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="application/javascript" src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+<script type="application/javascript">
+<!--
+window.onload = function(){
+  colorfulGraphCanvas.initModule("myCanvas");
+};
+
+var colorfulGraphCanvas = (function(){
+
+  var initModule, handleTick, handleResize, handleMouseWheelRotation, handleMouseDragOver, handleMouseDrop, handleMouseDown, handleMouseUp, updateForEach,
+
+  fadeOutTimer,
+  stage,
+  circle, line, background,
+  nodeNumber=1000, brushThickness=-3,
+  nodeArray = [],
+  prevX=0, prevY=0, count=0, paint = false;
+
+  initModule = function(id){
+    var spaShellOpening = document.getElementById("opening"), myCanvas = document.getElementById("myCanvas");
+    myCanvas.addEventListener("mousedown", handleMouseDown);
+    myCanvas.addEventListener("mouseup", handleMouseUp);
+    document.getElementById("opening-click").addEventListener("click", function () {
+      spaShellOpening.style.top = "-1000px";
+      spaShellOpening.style.opacity = "0";
+    });
+    if(spaShellOpening.style.top == "-1000px") spaShellOpening.parentNode.removeChild(spaShellOpening);
+    document.addEventListener("wheel", handleMouseWheelRotation);
+    stage = new createjs.Stage(id);
+    stage.autoClear = false;
+    stage.compositeOperation = "normal";
+    for(var i=0; i<nodeNumber; ++i){
+      var n = new Node();
+      n.setup(0, innerHeight, 0, 0, "rgba(0,0,0,0)");
+      nodeArray.push(n);
+    }
+    line = new createjs.Shape();
+    stage.addChildAt(line,1);
+    background = new createjs.Shape();
+    background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+    background.alpha = 0.03;
+    stage.addChildAt(background);
+    handleResize();
+    createjs.Ticker.timingMode = createjs.Ticker.RAF;
+    createjs.Ticker.addEventListener("tick", stage);
+    createjs.Ticker.addEventListener("tick", handleTick);
+    window.onresize = handleResize;
+  };
+
+  handleFadeOut = function () {
+    $('#superImpose').css('animation', 'FadeOut 1s ease 0.1s forwards');
+  };
+
+  handleTick = function(){
+    var mouseX = stage.mouseX, mouseY = stage.mouseY, vx = mouseX - prevX, vy = mouseY - prevY, vNorm = Math.log(Math.sqrt(vx*vx+vy*vy)+1),
+    f  = (255*vNorm / 60.0) - Math.floor(255*vNorm / 60.0),
+    p  = Math.round(255 * (1.0 - (255 / 255.0))),
+    q  = Math.round(255 * (1.0 - (255 / 255.0) * f)),
+    t  = Math.round(255 * (1.0 - (255 / 255.0) * (1.0 - f))),
+    red, green, blue, color="rgba(255,0,0,1)";
+    switch(Math.floor(255*vNorm / 60.0) % 6){
+      case 0:
+      red = 255, green = t, blue = p;
+      break;
+      case 1:
+      red = q, green = 255, blue = p;
+      break;
+      case 2:
+      red = p, green = 255, blue = t;
+      break;
+      case 3:
+      red = p, green = q, blue = 255;
+      break;
+      case 4:
+      red = t, green = p, blue = 255;
+      break;
+      case 5:
+      red = 255, green = p, blue = q;
+      break;
+      default:
+      break;
+    }
+    if(paint){
+      color = "rgba("+red+","+green+","+blue+",1)";
+      nodeArray[count].setup(mouseX, mouseY, vx, vy, color);
+      if(++count >= nodeNumber){
+        count = 0;
+      }
+      prevX = mouseX, prevY = mouseY;
+    }
+    line.graphics.clear();
+    line.graphics.beginStroke(color);
+    line.graphics.moveTo(nodeArray[0].arc.x,nodeArray[0].arc.y);
+    for(var i=1; i<nodeNumber; ++i){
+      line.graphics.lineTo(nodeArray[i].arc.x,nodeArray[i].arc.y);
+    }
+    line.graphics.closePath();
+    nodeArray.forEach(updateForEach);
+  };
+
+  handleResize = function () {
+    stage.canvas.width = innerWidth;
+    stage.canvas.height = innerHeight;
+    background.graphics.clear();
+    background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+  };
+
+  handleMouseWheelRotation = function (e) {
+    window.clearTimeout(fadeOutTimer);
+    brushThickness += 0.001*e.deltaY;
+    $('#superImpose').css('animation', '').css('opacity', '0.8').text("Brush Thickness: "+Math.abs(brushThickness));
+    fadeOutTimer = window.setTimeout(handleFadeOut, 1000);
+  };
+
+  handleMouseDown = function (e) {
+    paint = true;
+  };
+
+  handleMouseUp = function (e) {
+    paint = false;
+  };
+
+  updateForEach = function (element, index, array) {
+    element.update();
+  };
+
+  var Node = (function () {
+    function Node() {
+      this.arc = new createjs.Shape();
+      stage.addChild(this.arc);
+      this.rect = new createjs.Shape();
+      stage.addChild(this.rect);
+    }
+    Node.prototype.setup = function (x, y, vx, vy, color) {
+      this.arc.graphics.beginStroke(color).beginFill(null).drawCircle(0, 0, Math.abs(brushThickness) * Math.log(Math.sqrt(vx*vx+vy*vy)+1), 0, 2 * Math.PI, false);
+      this.arc.x = x;
+      this.arc.y = y;
+      this.rect.graphics.beginStroke(color).beginFill(null).drawRect(-5, -5, 10, 10);
+      this.rect.x = this.arc.x + (Math.random()-0.5);
+      this.rect.y = this.arc.y + (Math.random()-0.5);
+      this.vx = vx;
+      this.vy = vy;
+      stage.setChildIndex (this.arc,nodeNumber);
+    };
+    Node.prototype.update = function () {
+      this.vx *= 0.9;
+      this.vy *= 0.9;
+      this.arc.x += this.vx + brushThickness * (Math.random()-0.5);
+      this.arc.y += this.vy + brushThickness * (Math.random()-0.5);
+      this.rect.x += this.vx + (1+this.vx) * brushThickness * (Math.random()-0.5);
+      this.rect.y += this.vy + (1+this.vy) * brushThickness * (Math.random()-0.5);
+    };
+    return Node;
+  })();
+
+  return { initModule : initModule };
+})();
+-->
+</script>
+</body>
+</html>

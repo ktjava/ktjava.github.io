@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}#bgm{visibility: hidden;}</style>
+  <title>Physics Simulation Test with PixiJS</title>
+</head>
+<body>
+<canvas id="myCanvas" width="800" height="600"></canvas>
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.2.2/pixi.min.js"></script>
+<script type="application/javascript">
+<!--
+
+const NODE_NUMBER = 12000;
+
+var renderer = new PIXI.WebGLRenderer(innerWidth, innerHeight, {antialias : true, clearBeforeRender: false, preserveDrawingBuffer : true}),
+  stage = new PIXI.Container(),
+  mouseX = innerWidth >> 2, mouseY = innerHeight >> 2,
+  nodeArray = [],
+  background = new PIXI.Graphics(),
+
+  Node = (function(){
+    function Node(x, y, vx, vy, color, alpha) {
+      this.graphics = new PIXI.Graphics();
+      this.graphics.x = x;
+      this.graphics.y = y;
+      this.graphics.blendMode = PIXI.BLEND_MODES.NORMAL;
+      this.graphics.beginFill(color, alpha).drawRect(x, y, 1, 1);
+      this.vx = vx;
+      this.vy = vy;
+      stage.addChild(this.graphics);
+    }
+    Node.prototype.update = function () {
+      var rangeX = mouseX - this.graphics.x, rangeY = mouseY - this.graphics.y, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY), coefV = 0.0000001 / range*range*range;
+      this.vx += coefV * rangeX;
+      this.vy += coefV * rangeY;
+      this.graphics.x += this.vx;
+      this.graphics.y += this.vy;
+    };
+    return Node;
+  })();
+
+window.onload = function (){
+  var interaction = new PIXI.interaction.InteractionManager(renderer);
+  document.body.appendChild(renderer.view);
+  window.onresize = function () {
+    renderer.resize(innerWidth, innerHeight);
+    background.width = innerWidth;
+    background.height = innerHeight;
+  };
+  interaction.on("mousemove", function(){
+    mouseX = interaction.mouse.global.x >> 1, mouseY = interaction.mouse.global.y >> 1;
+  });
+  for(var i=0; i<NODE_NUMBER; ++i){
+    nodeArray.push(new Node((innerWidth >> 1) * Math.random(), (innerHeight >> 1) * Math.random(), 0, 0, 0xFFFFFF * Math.random(), 1));
+  }
+  stage.addChild(new PIXI.Text('Physics Simulation Test with PixiJS', {fontFamily : 'Arial', fontSize: 32, fill : 0xff0000, align : 'center'}));
+
+  background.beginFill(0x000000, 0.03).drawRect(0, 0, innerWidth, innerHeight);
+  stage.addChild(background);
+  animate();
+};
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(stage);
+    for(var i=0; i<NODE_NUMBER; ++i){
+      nodeArray[i].update();
+    }
+}
+
+-->
+</script>
+</body>
+</html>

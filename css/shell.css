@@ -1,0 +1,528 @@
+/* Web Font */
+
+@font-face {
+	font-family: 'nakamura';
+	src: url(./font/nkmr__.ttf) format('truetype');
+}
+
+@font-face {
+	font-family: 'makinas-scrap-5';
+	src: url(./font/Makinas-Scrap-5.otf) format('opentype');
+}
+
+/* Key Frame */
+
+@keyframes FadeIn {
+  0% {
+		-webkit-filter: blur(3px);
+		-moz-filter: blur(3px);
+		-ms-filter: blur(3px);
+		-o-filter: blur(3px);
+		filter: blur(3px);
+		color:#00ff00;opacity:0;}
+  100% {opacity:0.6;}
+}
+
+@keyframes BlurFadeIn {
+  0% {
+		-webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -ms-filter: blur(5px);
+    -o-filter: blur(5px);
+    filter: blur(5px);}
+  100% {
+		-webkit-filter: blur(1px);
+    -moz-filter: blur(1px);
+    -ms-filter: blur(1px);
+    -o-filter: blur(1px);
+    filter: blur(1px);}
+	}
+}
+
+@keyframes noiseMove {
+  0% {
+		top: -200%;
+	  left: 0;
+	}
+  100% {
+		top: 200%;
+	  left: 0;
+	}
+}
+
+/* Basic Tag */
+
+body {
+  background : #000000;
+	margin: 0;
+	padding: 0;
+	font-family: nakamura;
+}
+
+a {
+  color: #00ffff;
+  font-style: normal;
+	text-decoration: none;
+	-webkit-transition: 0.8s;
+	-moz-transition: 0.8s;
+	-o-transition: 0.8s;
+	-ms-transition: 0.8s;
+	transition: 0.8s;
+}
+a:link {
+  color: #00aa00;
+}
+a:visited {
+  color: #990000;
+}
+a:hover {
+  color: #ff0000;
+}
+
+/*div#noise_broad {
+  will-change: scroll-position;
+	z-index: 11;
+	margin: 0;
+  position: fixed !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 800px;
+  background-color: rgba(0,1,0,0.08);
+	pointer-events: none;
+	filter:blur(2px);-ms-filter:blur(2px);-moz-filter:blur(2px);-webkit-filter:blur(2px);-o-filter:blur(2px);
+	animation: noiseMove 30s linear 0s infinite forwards;
+}
+div#noise_narrow {
+  will-change: scroll-position;
+	z-index: 11;
+	margin: 0;
+  position: fixed !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(0,1,0,0.2);
+	pointer-events: none;
+	filter:blur(1px);-ms-filter:blur(1px);-moz-filter:blur(1px);-webkit-filter:blur(1px);-o-filter:blur(1px);
+	animation: noiseMove 15s linear 0s infinite forwards;
+}*/
+
+/* Modal Window */
+
+@keyframes modalFadeIn {
+  0% {
+		opacity:0;
+	}
+  100% {
+		opacity:1;
+	}
+}
+@keyframes modalSkew {
+  0% {
+		-ms-transform:skew(1deg,1deg);
+		-webkit-transform:skew(1deg,1deg);
+		transform:skew(1deg,1deg);
+	}
+  100% {
+		-ms-transform:skew(0,0);
+		-webkit-transform:skew(0,0);
+		transform:skew(0,0);
+	}
+}
+.spa-shell-modal div:target {
+  will-change: opacity;
+  -webkit-animation-name: modalFadeIn;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+  opacity: 1;
+  display:block;
+  z-index: 2;
+}
+.spa-shell-modal div:target > .spa-shell-modal-window {
+  will-change: opacity;
+  -webkit-animation-name: modalSkew;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+}
+.spa-shell-modal-close_overlay {
+  will-change: opacity;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  text-indent: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  position: fixed;
+  background: #00FFFF;
+  opacity: 0.2;
+  z-index: 2;
+	background-image: url("../img/background/cyber-security.jpg")
+}
+.spa-shell-modal-bg {
+  will-change: opacity;
+  position: fixed; right: 0; bottom: 0;
+  min-width: 100%; min-height: 100%;
+  width: auto; height: auto; z-index: -100;
+  opacity: 0.05;
+  background-size: cover;
+}
+.spa-shell-modal-window {
+  will-change: opacity;
+  top: 50%;
+  left: 50%;
+  margin-top: -300px;
+  margin-left: -400px;
+  width: 800px;
+  height: 600px;
+  display: block;
+  text-align: center;
+  background: #ffffff;
+  position: fixed !important;
+  opacity: 0.8;
+  z-index: 3;
+}
+.spa-shell-modal-window-h2 {
+  will-change: opacity;
+  margin-bottom: 20px;
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: left;
+  text-indent: 15px;
+  background: #000000;
+}
+.spa-shell-modal-window-img {
+  height : 240px;
+}
+.spa-shell-modal-window-p {
+  will-change: opacity;
+  padding: 0 15px 15px 15px;
+  font-size: 12px;
+  line-height: 160%;
+  text-align: left;
+}
+.spa-shell-modal-mwindow01,.spa-shell-modal-mwindow02,.spa-shell-modal-mwindow03,
+.spa-shell-modal-mwindow04,.spa-shell-modal-mwindow05,.spa-shell-modal-mwindow06,
+.spa-shell-modal-mwindow07,.spa-shell-modal-mwindow08,.spa-shell-modal-mwindow09 {
+  will-change: opacity;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  position: absolute;
+}
+
+.spa-shell-loading {
+  will-change: opacity;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed !important;
+  background: #ffffff;
+  z-index: 11;
+  -webkit-transition: 0.8s;
+	-moz-transition: 0.8s;
+	-o-transition: 0.8s;
+	-ms-transition: 0.8s;
+	transition: 0.8s;
+  text-align:center;
+}
+
+.spa-shell-loading-title {
+  position:fixed;
+  top:50%;
+  left:50%;
+  width:100%;
+  margin:-1.5em 0 0 -50%;
+	animation: FadeIn 1s ease 0.1s forwards;
+	opacity: 0;
+}
+
+/* Opening */
+
+.spa-shell-opening {
+  will-change: opacity;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed !important;
+  background: #ffffff;
+  z-index: 10;
+  -webkit-transition: 0.8s;
+	-moz-transition: 0.8s;
+	-o-transition: 0.8s;
+	-ms-transition: 0.8s;
+	transition: 0.8s;
+  text-align:center;
+}
+
+.spa-shell-opening-img {
+  height:100%;
+	animation: FadeIn 1s ease 0.1s forwards;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.spa-shell-opening-title {
+  position:fixed;
+  top:50%;
+  left:50%;
+  width:100%;
+  margin:-1.5em 0 0 -50%;
+	animation: FadeIn 1s ease 0.1s forwards;
+	opacity: 0;
+	pointer-events: none;
+}
+.spa-shell-opening-bg_canvas {
+  position: fixed;
+	top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+	pointer-events: none;
+	animation: BlurFadeIn 10s ease 0s forwards;
+}
+.spa-shell-opening-click {
+  will-change: opacity;
+  -webkit-transition: 0.8s;
+	-moz-transition: 0.8s;
+	-o-transition: 0.8s;
+	-ms-transition: 0.8s;
+	transition: 0.8s;
+  width:100%;
+  bottom: 0;
+  position: absolute;
+  z-index: 4;
+  font-size: 64px;
+  background: #77ffff;
+	animation: FadeIn 1s ease 0.1s forwards;
+	opacity: 0;
+}
+.spa-shell-opening-click:hover {
+	color: #ffffff;
+  background : #000000;
+}
+
+/* Content */
+
+.spa-shell-head, .spa-shell-head-name, .spa-shell-head-social,
+.spa-shell-main, .spa-shell-foot, .spa-shell-modal {
+  position : absolute;
+}
+.spa-shell-bg_canvas{
+  position: fixed;
+}
+.spa-shell-overlay {
+  will-change: opacity;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed !important;
+  color: #ffffff;
+  background-color: rgba(0,0,0,0);
+  z-index: -1;
+	text-align:center;
+	display: table;
+}
+.spa-shell-overlay-text {
+	top: 0;
+  left: 0;
+  font-size: 64px;
+	font-family: makinas-scrap-5;
+	display: table-cell;
+	vertical-align: middle;
+}
+.spa-shell-bg-video {
+	will-change: opacity;
+	right:0;
+	bottom:0;
+	min-width:100%;
+	min-height:100%;
+  width: auto;
+  height: auto;
+  position: fixed !important;
+  z-index: -2;
+	opacity: 0.4;
+}
+.spa-shell-head {
+  position: fixed;
+  top    : 0;
+  left   : 0;
+  right  : 0;
+  height : 40px;
+  z-index : 2;
+  background : #eeeeee;
+  opacity: 0.6;
+}
+.spa-shell-head-name {
+  top    : 0;
+  left   : 0;
+  height : 40px;
+  float  : left;
+  background : #eeeeee;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 32px;
+	display: table;
+}
+.spa-shell-head-name-span {
+	display: table-cell;
+	vertical-align: middle;
+}
+.spa-shell-head-social {
+  top    : 0;
+  right  : 0;
+  height : 40px;
+  float  : right;
+  background : #eeeeee;
+  padding-left: 20px;
+  padding-right: 20px;
+	display: table;
+}
+.spa-shell-head-social-img {
+  display: table-cell;
+	vertical-align: middle;
+	padding-left: 5px;
+  padding-right: 5px;
+}
+.spa-shell-head-social-img-height {
+	height : 30px;
+}
+.spa-shell-main {
+  top    : 40px;
+  left   : 0;
+  bottom : 20px;
+  clear  : both;
+	color: #00ff00;
+	opacity: 0;
+	display: flex;
+	flex-wrap: wrap;
+	-webkit-transition: 12s;
+	-moz-transition: 12s;
+	-o-transition: 12s;
+	-ms-transition: 12s;
+	transition: 12s;
+}
+.spa-shell-main-profile {
+  width  : 360px;
+  margin : 5px;
+}
+.spa-shell-main-profile-header {
+  left   : 0;
+  right  : 0;
+  height : 50px;
+  background : #66ee66;
+  padding: 20px;
+}
+.spa-shell-main-profile-content {
+  top    : 50px;
+  left   : 0;
+  right  : 0;
+  background : #dddddd;
+  padding: 20px;
+  font-size: 12px;
+}
+.spa-shell-main-portfolio {
+  width  : 360px;
+  margin : 5px;
+}
+.spa-shell-main-portfolio-header {
+  left   : 0;
+  right  : 0;
+  height : 50px;
+  background    : #66ee66;
+  padding: 20px;
+}
+.spa-shell-main-portfolio-content {
+  top    : 50px;
+  left   : 0;
+  right  : 0;
+  background : #dddddd;
+  padding: 20px;
+}
+.spa-shell-main-portfolio-img {
+  width : 320px;
+}
+.spa-shell-main-generative-test {
+	width  : 360px;
+  margin : 5px;
+}
+.spa-shell-main-generative-test-header {
+  left   : 0;
+  right  : 0;
+  height : 50px;
+  background    : #66ee66;
+  padding: 20px;
+}
+.spa-shell-main-generative-test-content {
+  top    : 50px;
+  left   : 0;
+  right  : 0;
+  background : #dddddd;
+  padding: 20px;
+}
+.spa-shell-main-experimental-music {
+	width  : 360px;
+  margin : 5px;
+}
+.spa-shell-main-experimental-music-header {
+  left   : 0;
+  right  : 0;
+  height : 50px;
+  background    : #66ee66;
+  padding: 20px;
+}
+.spa-shell-main-experimental-music-content {
+  top    : 50px;
+  left   : 0;
+  right  : 0;
+  background : #dddddd;
+  padding: 20px;
+}
+.spa-shell-main-logo {
+  width  : 360px;
+  margin : 5px;
+}
+.spa-shell-main-logo-header {
+  left   : 0;
+  right  : 0;
+  height : 50px;
+  background    : #66ee66;
+  padding: 20px;
+}
+.spa-shell-main-logo-content {
+  top    : 50px;
+  left   : 0;
+  right  : 0;
+  background : #dddddd;
+  padding: 20px;
+}
+.spa-shell-foot {
+  position: fixed;
+  bottom : 0;
+  left   : 0;
+  right  : 0;
+  height : 20px;
+  z-index : 2;
+  background : #eeeeee;
+  padding-left: 20px;
+  padding-right: 20px;
+  opacity: 0.6;
+	display: table;
+}
+.spa-shell-foot-span {
+	display: table-cell;
+	vertical-align: middle;
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)https://tomokuni-web-site.herokuapp.com/sub/generative/basic_particles.html -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Test Page">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}</style>
+  <title>Colorful Particles Integration</title>
+</head>
+<body>
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+<script type="application/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="application/javascript" src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+<script type="application/javascript">
+<!--
+
+var stage, circle, line, background, nodeNumber=1000, bubbleArray = [], rainArray = [], basicArray = [], linkArray = [], prevX=0, prevY=0, count=0;
+
+function setup(){
+  stage = new createjs.Stage("myCanvas");
+  stage.autoClear = false;
+  stage.compositeOperation = "normal";
+  for(var i=0; i<nodeNumber; ++i){
+    var n = new BubbleNode();
+    n.setup(0, 0, 0, 0, "rgba(0,0,0,0)");
+    bubbleArray.push(n);
+  }
+  for(var i=0; i<nodeNumber; ++i){
+    var n = new RainNode();
+    n.setup(0, 0, 0, 0, "rgba(0,0,0,0)");
+    rainArray.push(n);
+  }
+  for(var i=0; i<nodeNumber; ++i){
+    var n = new BasicNode();
+    n.setup(0, 0, 0, 0, "rgba(0,0,0,0)");
+    basicArray.push(n);
+  }
+  background = new createjs.Shape();
+	background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+  background.alpha = 0.03;
+	stage.addChild(background);
+  handleResize();
+  createjs.Ticker.timingMode = createjs.Ticker.RAF;
+  createjs.Ticker.addEventListener("tick", stage);
+  createjs.Ticker.addEventListener("tick", handleTick);
+  window.onresize = handleResize;
+}
+function handleTick(){
+  var mouseX = stage.mouseX, mouseY = stage.mouseY, vx = mouseX - prevX, vy = mouseY - prevY, vNorm = Math.sqrt(vx*vx+vy*vy),
+  f  = (255*vNorm / 60.0) - Math.floor(255*vNorm / 60.0),
+  p  = Math.round(255 * (1.0 - (255 / 255.0))),
+  q  = Math.round(255 * (1.0 - (255 / 255.0) * f)),
+  t  = Math.round(255 * (1.0 - (255 / 255.0) * (1.0 - f))),
+  red, green, blue;
+  switch(Math.floor(255*vNorm / 60.0) % 6){
+    case 0:
+      red = 255, green = t, blue = p;
+      break;
+    case 1:
+      red = q, green = 255, blue = p;
+      break;
+    case 2:
+      red = p, green = 255, blue = t;
+      break;
+    case 3:
+      red = p, green = q, blue = 255;
+      break;
+    case 4:
+      red = t, green = p, blue = 255;
+      break;
+    case 5:
+      red = 255, green = p, blue = q;
+      break;
+    default:
+      break;
+  }
+  bubbleArray[count].setup(mouseX, mouseY, vx, vy, "rgba("+red+","+green+","+blue+",1)");
+  rainArray[count].setup(mouseX, mouseY, vx, vy, "rgba("+red+","+green+","+blue+",1)");
+  basicArray[count].setup(mouseX, mouseY, vx, vy, "rgba("+red+","+green+","+blue+",1)");
+  prevX = mouseX, prevY = mouseY;
+  if(++count >= nodeNumber){
+    count = 0;
+  }
+  bubbleArray.forEach(updateForEach);
+  rainArray.forEach(updateForEach);
+  basicArray.forEach(updateForEach);
+}
+function handleResize() {
+  stage.canvas.width = innerWidth;
+  stage.canvas.height = innerHeight;
+  background.graphics.clear();
+  background.graphics.beginFill("black").drawRect(0, 0, innerWidth, innerHeight).endFill();
+}
+function updateForEach(element, index, array) {
+  element.update();
+}
+
+var BubbleNode = (function () {
+  function BubbleNode() {
+    this.circle = new createjs.Shape();
+    stage.addChild(this.circle);
+  }
+  BubbleNode.prototype.setup = function (x, y, vx, vy, color) {
+    var vNorm = Math.sqrt(vx*vx+vy*vy);
+    this.circle.graphics.beginFill(color).drawCircle(0, 0, 0.2*vNorm);
+    this.circle.x = x;
+    this.circle.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    stage.setChildIndex (this.circle,nodeNumber-1);
+  };
+  BubbleNode.prototype.update = function () {
+    var vNorm = Math.sqrt(this.vx*this.vx+this.vy*this.vy);
+    this.vx *= 0.9;
+    this.vy *= 0.9;
+    this.circle.x += this.vx + vNorm*Math.sin(0.01*this.circle.y);
+    this.circle.y += this.vy + vNorm*Math.sin(0.01*this.circle.x);
+  };
+  return BubbleNode;
+})();
+
+var RainNode = (function () {
+  function RainNode() {
+    this.circle = new createjs.Shape();
+    stage.addChild(this.circle);
+  }
+  RainNode.prototype.setup = function (x, y, vx, vy, color) {
+    this.circle.graphics.beginFill(color).drawCircle(0, 0, 1);
+    this.circle.x = x;
+    this.circle.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    stage.setChildIndex (this.circle,nodeNumber-1);
+  };
+  RainNode.prototype.update = function () {
+    this.vx *= 0.9;
+    this.vy *= 0.9;
+    this.circle.x += this.vx + randomAmp*(Math.random()-0.5);
+    this.circle.y += this.vy + Math.random();
+  };
+  return RainNode;
+})();
+
+var BasicNode = (function () {
+  function BasicNode() {
+    this.circle = new createjs.Shape();
+    stage.addChild(this.circle);
+  }
+  BasicNode.prototype.setup = function (x, y, vx, vy, color) {
+    this.circle.graphics.beginFill(color).drawCircle(0, 0, 1);
+    this.circle.x = x;
+    this.circle.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    stage.setChildIndex (this.circle,nodeNumber-1);
+  };
+  BasicNode.prototype.update = function () {
+    this.vx *= 0.9;
+    this.vy *= 0.9;
+    this.circle.x += this.vx;
+    this.circle.y += this.vy;
+  };
+  return BasicNode;
+})();
+
+window.onload = setup;
+
+-->
+</script>
+</body>
+</html>

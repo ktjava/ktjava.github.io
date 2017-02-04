@@ -1,0 +1,34 @@
+<html>
+	<head>
+		<title>Minimum three.js Application Test</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+		<script>
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+		var renderer = new THREE.WebGLRenderer();
+		var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+		var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+		var cube = new THREE.Mesh( geometry, material );
+		function setup(){
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			scene.add( cube );
+			camera.position.z = 5;
+			render();
+		}
+		function render() {
+			requestAnimationFrame( render );
+			renderer.render(scene, camera);
+			cube.rotation.x += 0.1;
+			cube.rotation.y += 0.1;
+		}
+		window.onload = setup;
+		</script>
+	</body>
+</html>

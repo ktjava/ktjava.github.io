@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}
+  #bgm {
+    visibility: hidden;
+  }
+  </style>
+  <title>Physics Simulation Test with PixiJS and Web Workers</title>
+</head>
+<body>
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.2.2/pixi.min.js"></script>
+<script type="application/javascript">
+<!--
+
+const NODE_NUMBER = 5000;
+
+var renderer = PIXI.autoDetectRenderer(innerWidth, innerHeight, {backgroundColor : 0x000000}),
+  stage = new PIXI.Container(),
+  mouseX = 0.25 * innerWidth, mouseY = 0.25 * innerHeight,
+  graphicsArray = [], positionArray = [], velocityArray = [], myWorker;
+
+window.onload = function (){
+  var interaction = new PIXI.interaction.InteractionManager(renderer);
+  document.body.appendChild(renderer.view);
+  window.onresize = function () {
+    renderer.resize(innerWidth, innerHeight);
+  };
+  interaction.on("mousemove", function(){
+    mouseX = interaction.mouse.global.x >> 1, mouseY = interaction.mouse.global.y >> 1;
+  });
+  for(var i=0; i<NODE_NUMBER; ++i){
+    positionArray.push(new PIXI.Point(0.5*innerWidth * Math.random(),0.5*innerHeight * Math.random()));
+    velocityArray.push(new PIXI.Point(0,0));
+    graphicsArray.push(new PIXI.Graphics());
+    graphicsArray[i].x = positionArray[i].x;
+    graphicsArray[i].y = positionArray[i].y;
+    graphicsArray[i].blendMode = PIXI.BLEND_MODES.ADD;
+    graphicsArray[i].beginFill(0xFFFFFF, 1).drawRect(positionArray[i].x, positionArray[i].y, 1, 1);
+    stage.addChild(graphicsArray[i]);
+  }
+  stage.addChild(new PIXI.Text('Physics Simulation Test with PixiJS and Web Workers',{fontFamily : 'Arial', fontSize: 32, fill : 0xff0000, align : 'center'}));
+  if (window.Worker) {
+    myWorker = new Worker("js/update.js");
+    myWorker.onmessage = function(e) {
+      velocityArray = e.data["velocityArray"];
+      positionArray = e.data["positionArray"];
+      for(var i=0; i<NODE_NUMBER; ++i){
+        graphicsArray[i].position = positionArray[i];
+      }
+    };
+    animate();
+  }
+};
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(stage);
+    myWorker.postMessage({"id": 1, "nodeNumber": NODE_NUMBER, "mouseX": mouseX, "mouseY": mouseY, "positionArray": positionArray, "velocityArray": velocityArray});
+};
+
+-->
+</script>
+</body>
+</html>

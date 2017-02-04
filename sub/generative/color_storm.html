@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)https://tomokuni-web-site.herokuapp.com/sub/generative/basic_particles.html -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}
+  #bgm {
+    visibility: hidden;
+  }
+  </style>
+  <title>Color Storm</title>
+</head>
+<body>
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.2.2/pixi.min.js"></script>
+<script type="application/javascript">
+<!--
+
+const NODE_NUMBER = 10000;
+
+var renderer = PIXI.autoDetectRenderer(innerWidth, innerHeight, {backgroundColor : 0x000000}),
+  stage = new PIXI.Container(),
+  mouseX = 0.25 * innerWidth, mouseY = 0.25 * innerHeight,
+  nodeArray = [],
+
+  Node = (function(){
+    function Node(x, y, vx, vy, color, alpha) {
+      this.graphics = new PIXI.Graphics();
+      this.graphics.x = x;
+      this.graphics.y = y;
+      this.graphics.blendMode = PIXI.BLEND_MODES.ADD;
+      this.graphics.beginFill(color, alpha).drawRect(x, y, 20, 20);
+      this.vx = vx;
+      this.vy = vy;
+      stage.addChild(this.graphics);
+    }
+    Node.prototype.update = function () {
+      var rangeX = mouseX - this.graphics.x, rangeY = mouseY - this.graphics.y, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY), coefV = 0.0000001 / range*range*range;
+      this.vx += coefV * rangeX;
+      this.vy += coefV * rangeY;
+      this.graphics.x += this.vx + Math.sin(rangeY/100) + Math.cos(this.vy);
+      this.graphics.y += this.vy + Math.cos(rangeX/100) + Math.sin(this.vx);
+    };
+    return Node;
+  })();
+
+
+window.onload = function (){
+  var interaction = new PIXI.interaction.InteractionManager(renderer);
+  document.body.appendChild(renderer.view);
+  window.onresize = function () {
+    renderer.resize(innerWidth, innerHeight);
+  };
+  window.onmousemove = function() {
+    mouseX = 0.5*interaction.mouse.global.x, mouseY = 0.5*interaction.mouse.global.y;
+  };
+  for(var i=0; i<NODE_NUMBER; ++i){
+    nodeArray.push(new Node(0.5*innerWidth * Math.random(), 0.5*innerHeight * Math.random(), 0, 0, 0xFFFFFF*Math.random(), 1));
+  }
+  stage.addChild(new PIXI.Text('Color Storm',{fontFamily : 'Arial', fontSize: 32, fill : 0xff0000, align : 'center'}));
+  animate();
+};
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(stage);
+    for(var i=0; i<NODE_NUMBER; ++i){
+      nodeArray[i].update();
+    }
+};
+
+-->
+</script>
+</body>
+</html>

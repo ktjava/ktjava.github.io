@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#stage{position:fixed;margin:0;padding:0;top:0;}#bgm{display:none;}</style>
+  <title>Newton PIXI</title>
+</head>
+<body>
+<canvas id="stage" width="800" height="600"></canvas>
+<iframe id="bgm" width="560" height="315" src="https://www.youtube.com/embed/QKxnmnXpO-c?start=0&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.2.2/pixi.min.js"></script>
+<script type="application/javascript">
+<!--
+
+const NODE_NUMBER =100;
+
+var renderer = new PIXI.WebGLRenderer(innerWidth, innerHeight, {antialias: true, clearBeforeRender: false, preserveDrawingBuffer: true}),
+  stage = new PIXI.Container(),
+  mouseX = innerWidth >> 2, mouseY = innerHeight >> 2,
+  nodeArray = [],
+  line = new PIXI.Graphics(),
+  background = new PIXI.Graphics(),
+  title = new PIXI.Text('Newton PIXI', {fontFamily: 'Arial', fontSize: 64, fill: "rgba(51,51,51,0.1)", align: 'center'}),
+
+  Node = (function(){
+    function Node(x, y, vx, vy, color, alpha){
+      this.graphics = new PIXI.Graphics();
+      this.graphics.x = x;
+      this.graphics.y = y;
+      this.graphics.beginFill(color, alpha).drawRect(x, y, 1, 1);
+      this.vx = vx;
+      this.vy = vy;
+      stage.addChild(this.graphics);
+    }
+    Node.prototype.update = function(){
+      var rangeX = mouseX - this.graphics.x, rangeY = mouseY - this.graphics.y, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY), coefV = 0.0000001 / range*range*range;
+      this.vx += coefV * rangeX;
+      this.vy += coefV * rangeY;
+      this.graphics.x += this.vx;
+      this.graphics.y += this.vy;
+    };
+    return Node;
+  })();
+
+window.onload = function(){
+  var interaction = new PIXI.interaction.InteractionManager(renderer);
+  document.body.appendChild(renderer.view);
+  PIXI.settings.PRECISION = PIXI.PRECISION.HIGH;
+  PIXI.settings.MIPMAP_TEXTURES = false;
+  window.onresize = function(){
+    renderer.resize(innerWidth, innerHeight);
+    background.width = innerWidth;
+    background.height = innerHeight;
+    title.x = (innerWidth - title.width) >> 1, title.y = (innerHeight - title.height) >> 1;
+  };
+  interaction.on("mousemove", function(){
+    mouseX = interaction.mouse.global.x >> 1, mouseY = interaction.mouse.global.y >> 1;
+  });
+  stage.addChild(line);
+  for(var i=0; i<NODE_NUMBER; ++i){
+    nodeArray.push(new Node((innerWidth >> 1) * Math.random(), (innerHeight >> 1) * Math.random(), 0, 0, 0xFFFFFF, 1));
+  }
+  title.x = (innerWidth - title.width) >> 1, title.y = (innerHeight - title.height) >> 1;
+  stage.addChild(title);
+  background.beginFill(0x000000, 0.03).drawRect(0, 0, innerWidth, innerHeight);
+  stage.addChild(background);
+  animate();
+};
+function animate() {
+    requestAnimationFrame(animate);
+    line.clear();
+    line.lineStyle(1, 0xFFFFFF, 0.02);
+    for(var j=0;j<NODE_NUMBER;++j){
+      for(var i=0;i<NODE_NUMBER;++i){
+        var interNodeRangeX = (nodeArray[i].graphics.x-nodeArray[j].graphics.x)/2, interNodeRangeY = (nodeArray[i].graphics.y-nodeArray[j].graphics.y)/2;
+        if(Math.sqrt(interNodeRangeX*interNodeRangeX+interNodeRangeY*interNodeRangeY)<70){
+          line.moveTo(2*nodeArray[i].graphics.x,2*nodeArray[i].graphics.y);
+          line.lineTo(2*nodeArray[j].graphics.x,2*nodeArray[j].graphics.y);
+        }
+      }
+    }
+    line.closePath();
+    for(var i=0; i<NODE_NUMBER; ++i){
+      nodeArray[i].update();
+    }
+    renderer.render(stage);
+}
+
+-->
+</script>
+</body>
+</html>

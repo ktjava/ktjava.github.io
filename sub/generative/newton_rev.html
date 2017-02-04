@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!-- saved from url=(0075)https://tomokuni-web-site.herokuapp.com/sub/generative/basic_particles.html -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="robots" content="noarchive">
+  <meta name="author" lang="ja" content="Tomokuni Kani">
+  <meta name="copyright" lang="ja" content="Tomokuni Kani">
+  <meta name="description" lang="ja" content="Genarative Art">
+  <style type="text/css">body{background-color:#FFFFFF;margin:0;padding:0;}#myCanvas{position:fixed;margin:0;padding:0;}
+  #bgm {
+    visibility: hidden;
+  }
+  </style>
+  <title>Newton REV</title>
+</head>
+<body>
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+<div id="bgm">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZCw2npjArVk?start=0&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
+</div>
+<script type="application/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="application/javascript" src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+<script type="application/javascript">
+<!--
+
+var stage, circle, line, text_message, background, nodeNumber=100, nodeArray = [], linkArray = [], mouseX = innerWidth / 2, mouseY = innerHeight / 2, prevX=0, prevY=0, count=0;
+
+function setup(){
+  stage = new createjs.Stage("myCanvas");
+  stage.autoClear = false;
+  stage.compositeOperation = "normal";
+  for(var i=0; i<nodeNumber; ++i){
+    var n = new Node();
+    n.setup(innerWidth * Math.random(), innerHeight * Math.random(), 0, 0, 0, 0, "rgba(0,0,0,1)");
+    nodeArray.push(n);
+  }
+  line = new createjs.Shape();
+  stage.addChild(line);
+  text_message = new createjs.Text("Newton REV", "64px Arial", "#FFFFFF");
+  text_message.alpha = 0.1;
+  text_message.textBaseline = "alphabetic";
+  text_message.x = (innerWidth - text_message.getBounds().width) / 2;
+  text_message.y = (innerHeight - text_message.getBounds().height) / 2;
+  stage.addChild(text_message);
+  background = new createjs.Shape();
+	background.graphics.beginFill("white").drawRect(0, 0, innerWidth, innerHeight).endFill();
+  background.alpha = 0.03;
+	stage.addChild(background);
+  handleResize();
+  createjs.Ticker.timingMode = createjs.Ticker.RAF;
+  createjs.Ticker.addEventListener("tick", stage);
+  createjs.Ticker.addEventListener("tick", handleTick);
+  window.onresize = handleResize;
+  window.onmousemove = function (){
+    mouseX = stage.mouseX, mouseY = stage.mouseY;
+  };
+  // document.onwheel = function (e) {
+  //   brushThickness += 0.00000000001*e.deltaY;
+  // };
+}
+function handleTick(){
+  line.graphics.clear();
+  nodeArray.forEach(updateForEach);
+  line.graphics.beginStroke("rgba(0,0,0,0.02)");
+  for(var j=0;j<nodeNumber;++j){
+    for(var i=0;i<nodeNumber;++i){
+      var interNodeRangeX = nodeArray[i].circle.x-nodeArray[j].circle.x, interNodeRangeY = nodeArray[i].circle.y-nodeArray[j].circle.y;
+      if(Math.sqrt(interNodeRangeX*interNodeRangeX+interNodeRangeY*interNodeRangeY)<400){
+        line.graphics.moveTo(nodeArray[i].circle.x,nodeArray[i].circle.y);
+        line.graphics.lineTo(nodeArray[j].circle.x,nodeArray[j].circle.y);
+      }
+    }
+  }
+  line.graphics.closePath();
+}
+function handleResize() {
+  stage.canvas.width = innerWidth;
+  stage.canvas.height = innerHeight;
+  text_message.x = (innerWidth - text_message.getBounds().width) / 2;
+  text_message.y = (innerHeight - text_message.getBounds().height) / 2;
+  background.graphics.clear();
+  background.graphics.beginFill("white").drawRect(0, 0, innerWidth, innerHeight).endFill();
+}
+function updateForEach(element, index, array) {
+  element.update();
+}
+
+var Node = (function () {
+  function Node() {
+    this.circle = new createjs.Shape();
+    stage.addChild(this.circle);
+  }
+  Node.prototype.setup = function (x, y, vx, vy, ax, ay, color) {
+    this.circle.graphics.beginFill(color).drawCircle(0, 0, 1);
+    this.circle.x = x;
+    this.circle.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.ax = ax;
+    this.ay = ay;
+    stage.setChildIndex (this.circle,nodeNumber-1);
+  };
+  Node.prototype.update = function () {
+    var rangeX = mouseX - this.circle.x, rangeY = mouseY - this.circle.y, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY);
+    this.ax = 0.0000001 * rangeX / range*range*range;
+    this.ay = 0.0000001 * rangeY / range*range*range;
+    this.vx += this.ax;
+    this.vy += this.ay;
+    this.circle.x += this.vx + Math.sin(0.01*rangeY);
+    this.circle.y += this.vy + Math.sin(0.01*rangeX);
+  };
+  return Node;
+})();
+
+window.onload = setup;
+
+-->
+</script>
+</body>
+</html>
