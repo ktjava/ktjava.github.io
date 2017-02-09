@@ -69,6 +69,13 @@
         text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
         text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
         stage.addChild(text_message);
+        (function clock(){
+          text_message.text = k;
+          text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
+          text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
+          ++k;
+          setTimeout(clock,1000);
+        })();
         background = new createjs.Shape();
         background.alpha = BACKGROUND_ALPHA;
 	      stage.addChild(background);
@@ -99,10 +106,6 @@
             }
           }
           line.graphics.closePath();
-          text_message.text = k;
-          text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
-          text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
-          ++k;
         });
       };
       -->
