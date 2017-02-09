@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="robots" content="noarchive">
+    <meta name="author" lang="ja" content="Tomokuni Kani">
+    <meta name="copyright" lang="ja" content="Tomokuni Kani">
+    <meta name="description" lang="ja" content="Genarative Art">
+    <style type="text/css">body{background-color:#000000;margin:0;padding:0;}#stage{position:fixed;margin:0;padding:0;top:0;}#bgm{display:none;}</style>
+    <title>Newton Clock Proto</title>
+  </head>
+  <body>
+    <canvas id="stage" width="800" height="600"></canvas>
+    <iframe id="bgm" width="560" height="315" src="https://www.youtube.com/embed/3uNVujUtLv0?start=0&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
+    <script type="application/javascript" src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+    <script type="application/javascript">
+      <!--
+      const NODE_NUMBER = 100, NODE_COLOR = "rgba(255,255,255,1)", GRAVITY_COEF = 0.0000001,
+        LINE_COLOR = "rgba(255,255,255,0.02)", MAX_LINE_LENGTH = 400,
+        BACKGROUND_COLOR = "black", BACKGROUND_ALPHA = 0.03,
+        OVERLAY_TEXT = " ", OVERLAY_TEXT_FONT = "64px Arial", OVERLAY_TEXT_COLOR = "rgba(51,51,51,0.1)";
+
+      var mouseX = 0.5 * innerWidth, mouseY = 0.5 * innerHeight,
+
+      stage, background, circle, line, text_message, nodeArray = [], linkArray = [],
+
+      k=0,
+
+      Node = (function(){
+        function Node(x, y, vx, vy, color){
+          this.circle = new createjs.Shape();
+          this.circle.graphics.beginFill(color).drawCircle(0, 0, 1);
+          this.circle.x = x;
+          this.circle.y = y;
+          this.vx = vx;
+          this.vy = vy;
+          stage.addChild(this.circle);
+        }
+        Node.prototype.update = function(){
+          var rangeX = mouseX - this.circle.x, rangeY = mouseY - this.circle.y, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY), coefA = GRAVITY_COEF / range*range*range,
+          rangeCX = 0.5 * innerWidth - this.circle.x, rangeCY = 0.5 * innerHeight - this.circle.y, rangeC = Math.sqrt(rangeCX*rangeCX+rangeCY*rangeCY), coefAC = GRAVITY_COEF / rangeC*rangeC*rangeC;
+          this.vx += coefAC * rangeCX + coefA * rangeX;
+          this.vy += coefAC * rangeCY + coefA * rangeY;
+          this.circle.x += this.vx;
+          this.circle.y += this.vy;
+        };
+        return Node;
+      })();
+
+      window.onload = function(){
+        stage = new createjs.Stage("stage");
+        stage.autoClear = false;
+        stage.compositeOperation = "source-over";
+        stage.enableMouseOver(60);
+        stage.addEventListener("stagemousedown", function(){
+          mouseX = stage.mouseX, mouseY = stage.mouseY;
+        });
+        line = new createjs.Shape();
+        stage.addChild(line);
+        for(var i=0; i<NODE_NUMBER; ++i){
+          nodeArray.push(new Node(innerWidth * Math.random(), innerHeight * Math.random(), 0, 0, NODE_COLOR));
+        }
+        text_message = new createjs.Text(OVERLAY_TEXT, OVERLAY_TEXT_FONT, OVERLAY_TEXT_COLOR);
+        text_message.textBaseline = "alphabetic";
+        text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
+        text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
+        stage.addChild(text_message);
+        background = new createjs.Shape();
+        background.alpha = BACKGROUND_ALPHA;
+	      stage.addChild(background);
+        window.onresize = function(){
+          background.graphics.clear();
+          stage.canvas.width = innerWidth;
+          stage.canvas.height = innerHeight;
+          text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
+          text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
+          background.graphics.beginFill(BACKGROUND_COLOR).drawRect(0, 0, innerWidth, innerHeight).endFill();
+        };
+        window.onresize();
+        createjs.Ticker.timingMode = createjs.Ticker.RAF;
+        createjs.Ticker.addEventListener("tick", stage);
+        createjs.Ticker.addEventListener("tick", function(){
+          line.graphics.clear();
+          for(var i=0;i<NODE_NUMBER;++i){
+            nodeArray[i].update();
+          }
+          line.graphics.beginStroke(LINE_COLOR);
+          for(var j=0;j<NODE_NUMBER;++j){
+            for(var i=0;i<NODE_NUMBER;++i){
+              var interNodeRangeX = nodeArray[i].circle.x-nodeArray[j].circle.x, interNodeRangeY = nodeArray[i].circle.y-nodeArray[j].circle.y;
+              if(Math.sqrt(interNodeRangeX*interNodeRangeX+interNodeRangeY*interNodeRangeY)<MAX_LINE_LENGTH){
+                line.graphics.moveTo(nodeArray[i].circle.x,nodeArray[i].circle.y);
+                line.graphics.lineTo(nodeArray[j].circle.x,nodeArray[j].circle.y);
+              }
+            }
+          }
+          line.graphics.closePath();
+          text_message.text = k;
+          text_message.x = 0.5 * (innerWidth - text_message.getBounds().width);
+          text_message.y = 0.5 * (innerHeight - text_message.getBounds().height);
+          ++k;
+        });
+      };
+      -->
+    </script>
+  </body>
+</html>
