@@ -33,9 +33,9 @@
 			}
 			Node.prototype.update = function(){
 				var rangeX = -4*Math.sin(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.x, rangeY = mouse.y - this.mesh.position.y, rangeZ = -4*Math.cos(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.z, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY+rangeZ*rangeZ), coefA = GRAVITY_COEF / range*range*range;
-				this.vx += coefA * rangeX * rangeX * rangeX;
-				this.vy += coefA * rangeY * rangeY * rangeY;
-				this.vz += coefA * rangeZ * rangeZ * rangeZ;
+				this.vx += coefA * rangeX + this.mesh.position.x;
+				this.vy += coefA * rangeY;
+				this.vz += coefA * rangeZ;
 				this.mesh.position.x += this.vx;
 				this.mesh.position.y += this.vy;
 				this.mesh.position.z += this.vz;
