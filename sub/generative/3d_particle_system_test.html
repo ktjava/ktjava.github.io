@@ -33,7 +33,7 @@
 			}
 			Node.prototype.update = function(){
 				var rangeX = -4*Math.sin(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.x, rangeY = mouse.y - this.mesh.position.y, rangeZ = -4*Math.cos(camera.rotation.y + 0.01*mouse.x) - this.mesh.position.z, range = Math.sqrt(rangeX*rangeX+rangeY*rangeY+rangeZ*rangeZ), coefA = GRAVITY_COEF / range*range*range;
-				this.vx += coefA * rangeX + this.mesh.position.x;
+				this.vx += coefA * rangeX;
 				this.vy += coefA * rangeY;
 				this.vz += coefA * rangeZ;
 				this.mesh.position.x += this.vx;
@@ -73,9 +73,9 @@
 				nodeArray[count].mesh.position.x = 0;
 				nodeArray[count].mesh.position.y = 0;
 				nodeArray[count].mesh.position.z = 0;
-				nodeArray[count].vx = 0;
-				nodeArray[count].vy = 0;
-				nodeArray[count].vz = 0;
+				nodeArray[count].vx = 0.007*(Math.random()-0.5);
+				nodeArray[count].vy = 0.007*(Math.random()-0.5);
+				nodeArray[count].vz = 0.007*(Math.random()-0.5);
 				++count;
 			}
 			resetFlag = false;
